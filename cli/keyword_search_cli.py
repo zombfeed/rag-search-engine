@@ -7,7 +7,7 @@ moviefile = os.path.join('data', 'movies.json')
 def keywordsearch(data, query):
     results = []
     for movie in data:
-        if query in movie['title']:
+        if query.lower() in movie['title'].lower():
             results.append(movie)
     return results
         
