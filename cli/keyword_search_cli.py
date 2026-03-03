@@ -1,4 +1,5 @@
 import os
+import string
 import argparse
 import json
 
@@ -6,8 +7,11 @@ moviefile = os.path.join('data', 'movies.json')
 
 def keywordsearch(data, query):
     results = []
+    punctable = str.maketrans('','',string.punctuation,)
     for movie in data:
-        if query.lower() in movie['title'].lower():
+        title = movie['title'].lower().translate(punctable)
+        q = query.lower().translate(punctable)
+        if q in title:
             results.append(movie)
     return results
         
