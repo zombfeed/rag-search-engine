@@ -3,16 +3,29 @@ import string
 import argparse
 import json
 
+from nltk.stem import PorterStemmer
+
 moviefile = os.path.join('data', 'movies.json')
+stopwordsfile = os.path.join('data', 'stopwords.txt')
+
+
 
 def keywordsearch(data, query):
     results = []
     punctable = str.maketrans('','',string.punctuation,)
+    with open(stopwordsfile, 'r') as f:
+        stopwords = f.read().splitlines()
+    stemmer = PorterStemmer()
     for movie in data:
-        title = movie['title'].lower().translate(punctable)
-        q = query.lower().translate(punctable)
-        if q in title:
-            results.append(movie)
+        titletoken = list(filter(lambda t: t!='' or t not in stopwords, movie['title'].lower().translate(punctable).split()))
+        qtokens = list(filter(lambda t: t != '' or t not in stopwords, query.lower().translate(punctable).split()))
+        for token in qtokens:
+            tokenroot = stemmer.stem(token)
+            for title in titletoken:
+                titleroot = stemmer.stem(title)
+                if tokenroot in titleroot:
+                    results.append(movie)
+                    break
     return results
         
 
