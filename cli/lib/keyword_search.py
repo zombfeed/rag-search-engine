@@ -4,7 +4,7 @@ import pickle
 import string
 import argparse
 
-from collections import defaultdict
+from collections import defaultdict, Counter
 from nltk.stem import PorterStemmer
 
 from .search_utils import (
@@ -18,17 +18,26 @@ class InvertedIndex():
     def __init__(self):
         self.index = defaultdict(set)
         self.docmap = {}
+        self.term_frequencies = defaultdict(Counter)
         self.index_path = os.path.join(CACHE_DIR, 'index.pkl')
         self.docmap_path = os.path.join(CACHE_DIR, 'docmap.pkl')
+        self.tf_path = os.path.join(CACHE_DIR, 'term_frequencies.pkl')
     
     def __add_document(self, doc_id, text):
         tokens = tokenize_text(text)
         for token in set(tokens):
             self.index[token].add(doc_id)
+        self.term_frequencies[doc_id].update(tokens)
                 
     def get_documents(self, term):
         doc_ids = self.index.get(term, set())
         return sorted(list(doc_ids))
+    
+    def get_tf(self, doc_id, term):
+        tokens = tokenize_text(term)
+        if len(tokens)>1:
+            raise Exception(f"Error: expected one token: got {tokens}")
+        return self.term_frequencies[doc_id][tokens[0]]
 
     def build(self):
         movies = load_movies()
@@ -45,23 +54,34 @@ class InvertedIndex():
             pickle.dump(self.index, f)
         with open(self.docmap_path, 'wb') as f:
             pickle.dump(self.docmap, f)
+        with open(self.tf_path, 'wb') as f:
+            pickle.dump(self.term_frequencies, f)
             
     def load(self):
         if not os.path.exists(self.index_path):
             raise FileNotFoundError(f"{self.index_path} does not exist")
         if not os.path.exists(self.docmap_path):
             raise FileNotFoundError(f"{self.docmap_path} does not exist")
+        if not os.path.exists(self.tf_path):
+            raise FileNotFoundError(f"{self.tf_path} does not exist")
         
         with open(self.index_path, 'rb') as f:
             self.index = pickle.load(f)
         with open(self.docmap_path, 'rb') as f:
             self.docmap = pickle.load(f)
+        with open(self.tf_path, 'rb') as f:
+            self.term_frequencies = pickle.load(f)
 
 
 def build_command():
     idx = InvertedIndex()
     idx.build()
     idx.save()
+
+def tf_command(doc_id, term):
+    idx = InvertedIndex()
+    idx.load()
+    return idx.get_tf(doc_id, term)
 
 def search_command(query, limit=DEFAULT_SEARCH_LIMIT):
     idx = InvertedIndex()
