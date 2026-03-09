@@ -1,8 +1,8 @@
 import os
 import json
+import math
 import pickle
 import string
-import argparse
 
 from collections import defaultdict, Counter
 from nltk.stem import PorterStemmer
@@ -82,6 +82,15 @@ def tf_command(doc_id, term):
     idx = InvertedIndex()
     idx.load()
     return idx.get_tf(doc_id, term)
+
+def idf_command(term):
+    idx = InvertedIndex()
+    idx.load()
+    total_doc_count = len(idx.docmap)
+    token = tokenize_text(term)
+    term_match_doc_count = len(idx.get_documents(token[0]))
+    
+    return math.log((total_doc_count + 1) / (term_match_doc_count + 1))
 
 def search_command(query, limit=DEFAULT_SEARCH_LIMIT):
     idx = InvertedIndex()
