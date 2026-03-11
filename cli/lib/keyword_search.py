@@ -38,6 +38,24 @@ class InvertedIndex():
         if len(tokens)>1:
             raise Exception(f"Error: expected one token: got {tokens}")
         return self.term_frequencies[doc_id][tokens[0]]
+    
+    def get_idf(self, term):
+        token = tokenize_text(term)[0]
+        doc_count = len(self.docmap)
+        term_match_doc_count = len(self.index[token])
+        
+        return math.log((doc_count + 1) / (term_match_doc_count + 1))
+    
+    def get_tf_idf(self, doc_id, term):
+        tf = self.get_tf(doc_id, term)
+        idf = self.get_idf(term)
+        return tf * idf
+    
+    def get_bm25_idf(self, term):
+        token = tokenize_text(term)[0]
+        doc_count = len(self.docmap)
+        df = len(self.index[token])
+        return math.log((doc_count - df + 0.5) / (df + 0.5) + 1)
 
     def build(self):
         movies = load_movies()
@@ -85,12 +103,19 @@ def tf_command(doc_id, term):
 
 def idf_command(term):
     idx = InvertedIndex()
+    idx.load()    
+    return idx.get_idf(term)
+
+def tf_idf_command(doc_id, term):
+    idx = InvertedIndex()
     idx.load()
-    total_doc_count = len(idx.docmap)
-    token = tokenize_text(term)
-    term_match_doc_count = len(idx.get_documents(token[0]))
+    return idx.get_tf_idf(doc_id, term)
+
+def bm25_idf_command(term):
+    idx = InvertedIndex()
+    idx.load()
+    return idx.get_bm25_idf(term)
     
-    return math.log((total_doc_count + 1) / (term_match_doc_count + 1))
 
 def search_command(query, limit=DEFAULT_SEARCH_LIMIT):
     idx = InvertedIndex()
