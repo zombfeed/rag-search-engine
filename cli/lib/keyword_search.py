@@ -203,7 +203,3 @@ def tokenize_text(text):
     stemmed_words = [stemmer.stem(word) for word in filtered_tokens]
     return stemmed_words
 
-def loadFromJson(file):
-    with open(file, 'r') as f:
-        data = json.load(f)
-    return data
