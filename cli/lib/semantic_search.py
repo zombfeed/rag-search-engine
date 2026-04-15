@@ -1,4 +1,5 @@
 import os
+import re
 import json
 import numpy as np
 
@@ -7,6 +8,7 @@ from sentence_transformers import SentenceTransformer
 from .search_utils import (
     DEFAULT_SEARCH_LIMIT,
     DEFAULT_CHUNK_SIZE,
+    MAX_CHUNK_SIZE,
     CACHE_DIR,
     load_movies
 )
@@ -112,11 +114,11 @@ def cosine_similarity(vecA, vecB):
         return 0.0
     return dot_product / (normA * normB)
 
+def splitter(chunk_size, text):
+    return (" ".join(text[i:i+chunk_size]) for i in range(0, len(text), chunk_size))
 
 def chunk_text(text, chunk_size=DEFAULT_CHUNK_SIZE, overlap=0):
     words = text.split()
-    def splitter(n, s):
-        return (" ".join(s[i:i+n]) for i in range(0, len(s), n))
 
     print(f"Chunking {len(text)} characters")
     chunks = list(splitter(chunk_size, words))
@@ -125,3 +127,13 @@ def chunk_text(text, chunk_size=DEFAULT_CHUNK_SIZE, overlap=0):
             print(f'{i+1}. {' '.join(chunks[i-1].split()[-overlap:])} {chunks[i]}')
         else:
             print(f'{i+1}. {chunks[i]}')
+            
+def semantic_chunk(text, max_chunk_size=MAX_CHUNK_SIZE, overlap=0):
+    sentences = re.split('r"(?<=[.!?])\s+"', text, max_chunk_size)
+    print(f'Semantically chunking {len(text)} characters')
+    chunks = list(splitter(max_chunk_size, sentences))
+    for i in range(len(chunks)):
+        if overlap > 0 and i > 0:
+            print(f'{i+1}. {" ".join(chunks[i-1].split()[-overlap:])} {chunks[i]}')
+        else:
+            print(f'{i+1}. {chunks[i]}')  
