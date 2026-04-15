@@ -7,7 +7,8 @@ from lib.semantic_search import(
     verify_embeddings,
     embed_text,
     embed_query_text,
-    semantic_search
+    semantic_search,
+    chunk_text
 )
 
 def main():
@@ -27,6 +28,11 @@ def main():
     search_parser.add_argument('query', type=str, help="Search query")
     search_parser.add_argument('--limit', type=int, default=5, help="Number of results to return")
     
+    chunk_parser = subparsers.add_parser("chunk", help="Chunk a given text into smaller pieces")
+    chunk_parser.add_argument('text', type=str, help='Text to chunk')
+    chunk_parser.add_argument('--chunk-size', type=int, default=200, help='Maximum number of characters in each chunk')
+    chunk_parser.add_argument('--overlap', type=int, help='Number of overlapping characters between chunks', default=0)
+    
     
     
     args = parser.parse_args()
@@ -43,9 +49,10 @@ def main():
             embed_query_text(args.query)
         case "search":
             semantic_search(args.query, args.limit)
+        case "chunk":
+            chunk_text(args.text, args.chunk_size, args.overlap)
         case _:
             parser.print_help()
-            
 
 if __name__ == "__main__":
     main()

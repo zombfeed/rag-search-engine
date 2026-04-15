@@ -5,6 +5,8 @@ import numpy as np
 
 from sentence_transformers import SentenceTransformer
 from .search_utils import (
+    DEFAULT_SEARCH_LIMIT,
+    DEFAULT_CHUNK_SIZE,
     CACHE_DIR,
     load_movies
 )
@@ -91,7 +93,7 @@ def embed_query_text(query):
     print(f"First 5 dimensions: {embedding[:5]}")
     print(f"Shape: {embedding.shape}")
     
-def semantic_search(query, limit):
+def semantic_search(query, limit=DEFAULT_SEARCH_LIMIT):
     semsearch = SemanticSearch()
     documents = load_movies()
     semsearch.load_or_create_embeddings(documents)
@@ -109,3 +111,17 @@ def cosine_similarity(vecA, vecB):
     if normA == 0 or normB == 0:
         return 0.0
     return dot_product / (normA * normB)
+
+
+def chunk_text(text, chunk_size=DEFAULT_CHUNK_SIZE, overlap=0):
+    words = text.split()
+    def splitter(n, s):
+        return (" ".join(s[i:i+n]) for i in range(0, len(s), n))
+
+    print(f"Chunking {len(text)} characters")
+    chunks = list(splitter(chunk_size, words))
+    for i in range(len(chunks)):
+        if overlap > 0 and i > 0:
+            print(f'{i+1}. {' '.join(chunks[i-1].split()[-overlap:])} {chunks[i]}')
+        else:
+            print(f'{i+1}. {chunks[i]}')

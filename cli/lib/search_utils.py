@@ -7,6 +7,8 @@ DATA_PATH = os.path.join(PROJECT_ROOT, 'data', 'movies.json')
 STOPWORDS_PATH = os.path.join(PROJECT_ROOT, 'data', 'stopwords.txt')
 CACHE_DIR = os.path.join(PROJECT_ROOT, 'cache')
 
+DEFAULT_CHUNK_SIZE = 200
+
 BM25_K1 = 1.5
 BM25_B = 0.75
 
